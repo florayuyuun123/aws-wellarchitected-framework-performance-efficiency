@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless Coffee Shop Inventory Management API
+
+Globals:
+  Function:
+    Timeout: 5
+    MemorySize: 256
+    Runtime: nodejs20.x
+    Tracing: Active # Enables AWS X-Ray tracing for Performance Efficiency
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref InventoryTable
+        LOG_LEVEL: INFO
+
+Resources:
+  # DynamoDB Table with On-Demand Capacity (Performance Efficiency Pillar)
+  InventoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: CoffeeShopInventory
+      AttributeDefinitions:
+        - AttributeName: itemId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: itemId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST # On-demand scaling
+
+  # Shared Lambda Layer
+  SharedUtilsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: CoffeeShopUtilsLayer
+      Description: Shared utilities and error handling for Inventory API
+      ContentUri: src/layer/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Retain
+
+  # GetInventory Lambda
+  GetInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/get_inventory/
+      Handler: app.lambdaHandler
+      Layers:
+        - !Ref SharedUtilsLayer
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref InventoryTable
+      Events:
+        GetAll:
+          Type: Api
+          Properties:
+            Path: /inventory
+            Method: get
+        GetOne:
+          Type: Api
+          Properties:
+            Path: /inventory/{itemId}
+            Method: get
+
+  # AddInventory Lambda
+  AddInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/add_inventory/
+      Handler: app.lambdaHandler
+      Layers:
+        - !Ref SharedUtilsLayer
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref InventoryTable
+      Events:
+        AddOne:
+          Type: Api
+          Properties:
+            Path: /inventory
+            Method: post
+
+  # UpdateInventory Lambda
+  UpdateInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/update_inventory/
+      Handler: app.lambdaHandler
+      Layers:
+        - !Ref SharedUtilsLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref InventoryTable
+      Events:
+        UpdateOne:
+          Type: Api
+          Properties:
+            Path: /inventory/{itemId}
+            Method: put
+
+  # DeleteInventory Lambda
+  DeleteInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/delete_inventory/
+      Handler: app.lambdaHandler
+      Layers:
+        - !Ref SharedUtilsLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref InventoryTable
+      Events:
+        DeleteOne:
+          Type: Api
+          Properties:
+            Path: /inventory/{itemId}
+            Method: delete
+
+Outputs:
+  InventoryApiUrl:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/inventory"
