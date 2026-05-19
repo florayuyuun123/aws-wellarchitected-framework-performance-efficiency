@@ -5,13 +5,18 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         
+        <!-- Diagram Title (Optimized for Dark & Light Backgrounds) -->
+        <mxCell id="title" value="&lt;font color=&quot;#ffffff&quot;&gt;&lt;b&gt;Serverless Coffee Shop Manager - Runtime Architecture&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=#D45B07;fillColor=#232F3E;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontColor=#ffffff;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="600" height="50" as="geometry" />
+        </mxCell>
+        
         <!-- User -->
         <mxCell id="user" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
           <mxGeometry x="60" y="400" width="40" height="80" as="geometry" />
         </mxCell>
 
         <!-- Amplify -->
-        <mxCell id="amplify" value="React Frontend" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#D45B07;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=14;fontStyle=1;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.amplify;" vertex="1" parent="1">
+        <mxCell id="amplify" value="AWS Amplify (React)" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#D45B07;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=14;fontStyle=1;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.amplify;" vertex="1" parent="1">
           <mxGeometry x="240" y="400" width="80" height="80" as="geometry" />
         </mxCell>
 

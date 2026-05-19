@@ -1,115 +1,217 @@
-# Serverless Coffee Shop Manager ☕
+# Serverless Coffee Shop Manager
 
-A fully serverless, full-stack inventory management system designed to demonstrate the **Performance Efficiency** pillar of the AWS Well-Architected Framework. 
+A fully serverless, full-stack inventory management system I designed and built to demonstrate the **Performance Efficiency** and **Operational Excellence** pillars of the AWS Well-Architected Framework. 
 
-By leveraging AWS Serverless Application Model (SAM) and on-demand pricing models, this application provides an incredibly fast, highly scalable backend that costs exactly $0.00 while sitting idle.
-
-## 🏗️ Architecture
-
-![Architecture Diagram](architecture.png)
-
-* **Frontend:** A modern, glassmorphism-inspired React application built with Vite for lightning-fast hot module replacement.
-* **API Layer:** Amazon API Gateway providing secure RESTful endpoints.
-* **Compute:** AWS Lambda functions written in Node.js (JavaScript) for rapid cold starts and execution.
-* **Storage:** Amazon DynamoDB using `PAY_PER_REQUEST` (On-Demand) billing to ensure you only pay for the exact read/write capacity you consume.
+By leveraging AWS Serverless Application Model (SAM), Amazon API Gateway, AWS Lambda, DynamoDB, and AWS Amplify, this application provides a lightning-fast, highly scalable backend and a premium glassmorphic frontend—costing exactly **$0.00 while sitting idle** and scaling instantly to meet demand.
 
 ---
 
-## 🛠️ Prerequisites
+## Architecture and Detailed Component Breakdowns
 
-Before you begin, ensure you have the following installed on your local machine:
-1. **Node.js** (v18 or higher) - For running the React frontend.
-2. **AWS CLI** - Authenticated with your AWS account (`aws configure`).
-3. **AWS SAM CLI** - Used for building and deploying the backend infrastructure. 
-   - *Windows Users:* If you don't have it, download the [AWS SAM CLI 64-bit MSI](https://github.com/aws/aws-sam-cli/releases/latest/download/AWS_SAM_CLI_64_PY3.msi) and install it as an Administrator.
+To present my cloud infrastructure professionally, I have divided the system architecture into two distinct, self-contained sections. Each diagram has its own detailed explanation directly below it:
 
 ---
 
-## 🚀 Step 1: Deploying the Backend
+### Diagram 1: Runtime Traffic Flow (architecture.png)
+Maps out the active end-to-end request path of an inventory transaction from the user's browser down to the database.
 
-The backend is entirely managed by AWS SAM. We will build the Lambda functions and deploy the infrastructure to your AWS account.
+![Runtime Architecture](architecture.png)
 
-1. Open your terminal and navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Build the serverless application:
-   ```bash
-   sam build
-   ```
-3. Deploy the application to your AWS account. We use the `--guided` flag to set it up for the first time:
-   ```bash
-   sam deploy --guided
-   ```
-   When prompted, answer with the following:
-   * **Stack Name [sam-app]:** `coffeeshop-inventory` (or press Enter if it already says this)
-   * **AWS Region [us-east-1]:** Press **Enter** to accept your default region, or type a new one (e.g., `us-west-2`).
-   * **Confirm changes before deploy [y/N]:** Press **Enter** (accepts N).
-   * **Allow SAM CLI IAM role creation [Y/n]:** Type **`y`** and press **Enter**.
-   * **Disable rollback [y/N]:** Press **Enter** (accepts N).
-   * **GetInventoryFunction has no authentication. Is this okay? [y/N]:** Type **`y`** and press **Enter**. *(You will be asked this 4 times—once for each function. Type `y` for all of them!)*
-   * **Save arguments to configuration file [Y/n]:** Press **Enter** (accepts Y).
-   * **SAM configuration file [samconfig.toml]:** Press **Enter**.
-   * **SAM configuration environment [default]:** Press **Enter**.
-   
-   Finally, SAM will show you the CloudFormation changeset and ask `Deploy this changeset? [y/N]:`. Type **`y`** and press **Enter**.
-4. Once the deployment finishes, the terminal will output an **`InventoryApiUrl`**. Copy this URL! You will need it for the frontend.
+#### Runtime Architecture Component Breakdown:
+*   **Hosting Layer (AWS Amplify / CloudFront CDN):** Hosts the static React single-page application (SPA). When a user requests the application, Amplify serves the Vite-built static files globally with microsecond latency via Amazon CloudFront's Content Delivery Network.
+*   **API Gateway Layer (Amazon API Gateway):** Acts as the secure RESTful entry point for all frontend requests. It translates HTTP calls into Lambda invocation triggers and natively handles global **CORS Preflight (OPTIONS)** requests to permit safe write operations.
+*   **Compute Layer (AWS Lambda):** Consists of four single-purpose, highly isolated CRUD functions (`GetInventory`, `AddInventory`, `UpdateInventory`, `DeleteInventory`) written in Node.js. They scale horizontally instantly and scale back down to zero to eliminate idle costs.
+*   **Shared Lambda Layer (Node.js utils):** A custom reusable library I built to standardise backend responses. It centralises response compilation, ensuring every function replies with consistent HTTP status codes and required CORS headers without code duplication.
+*   **Database Layer (Amazon DynamoDB):** A fully managed NoSQL database operating on `PAY_PER_REQUEST` billing. It stores the coffee shop's inventory items with sub-millisecond read/write latencies.
 
 ---
 
-## 🎨 Step 2: Running the Frontend
+### Diagram 2: DevOps & CI/CD Pipeline (pipeline.png)
+Maps out the automated code deployment loops, version control hooks, and Infrastructure as Code (IaC) management boundaries.
 
-The frontend is a beautiful, responsive React application. 
+![DevOps & CI/CD Pipeline](pipeline.png)
 
-1. Open a *new* terminal window (or Command Prompt if you are on Windows to bypass PowerShell execution policies) and navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-2. Install the necessary Node modules:
-   ```bash
-   npm install
-   ```
-3. Connect the frontend to your newly deployed backend:
-   - Open `frontend/src/App.jsx` in your code editor.
-   - Look for the `API_URL` variable near the top of the file.
-   - Replace the `null` value with the **`InventoryApiUrl`** you copied from the backend deployment step. Make sure the URL is wrapped in quotes.
-   
-4. Start the local development server:
-   ```bash
-   npm run dev
-   ```
-5. Open your browser and navigate to `http://localhost:5173/` to view and manage your live coffee shop inventory!
-
-6. **Host on AWS Amplify (Production Deployment)**:
-   You can deploy the React app to a production-ready global CDN using AWS Amplify's Git-based CI/CD:
-   * Push your repository to GitHub.
-   * Go to the **AWS Amplify Console** in your browser.
-   * Select **Create new app**, choose **GitHub**, and select your repository.
-    * Choose your main branch and click **Next**.
-    * On the **Configure build settings** page:
-      * Check the box that says **"Connecting a monorepo? Check this box."**
-      * In the **Monorepo folder path** text box, enter: `frontend`.
-      * AWS Amplify will now automatically detect your React project and configure the optimal build settings without you needing to edit any YAML code!
-    * Click **Next**, then click **Save and Deploy**. Once the build finishes, you will receive your live, public `.amplifyapp.com` domain!
+#### DevOps and CI/CD Pipeline Component Breakdown:
+*   **Local Developer Workstation:** The starting point where code is written, locally tested, and packaged.
+*   **GitHub Repository (Version Control):** The centralized source code repository. Committing code to GitHub automatically sends a webhook notification to AWS Amplify to start a frontend build.
+*   **AWS Amplify Build System (Frontend Pipeline):** Listens to GitHub commits, auto-detects changes in the `frontend` subfolder, builds the static React bundle using Vite, and deploys it to the global CloudFront CDN.
+*   **AWS SAM CLI & CloudFormation (Backend Pipeline):** Running `sam deploy --guided` packages local templates and uploads them to **AWS CloudFormation**. CloudFormation acts as the centralized transaction engine, cleanly provisioning or updating all Lambdas, API configurations, and the DynamoDB Table as a single unified stack.
+*   **IAM Security Boundaries (Permissions):** During deployment, SAM and CloudFormation generate highly targeted, least-privilege IAM Roles. Each Lambda function is assigned a role strictly limiting it to the minimal database permissions needed for its execution (e.g. read-only vs write-only).
 
 ---
 
-## ⚠️ Troubleshooting
+## CORS Security and Active Observability (Well-Architected Compliance)
 
-* **PowerShell Execution Errors (`npm` or `npx` fails):** Windows PowerShell restricts running scripts by default. To fix this, run your `npm` commands inside the standard **Command Prompt** (`cmd.exe`) instead of PowerShell, or temporarily bypass the policy by running `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` in your PowerShell window.
-* **`sam` command not recognized:** This means the AWS SAM CLI isn't installed properly or hasn't been added to your system's PATH. Ensure you have downloaded the MSI installer and completely restarted your VS Code or Terminal afterward.
-* **Ghost IDE Errors (Python):** If your editor complains about missing Python `utils` modules in `app.py`, it's because those files were deleted and rewritten in JavaScript (`app.js`). Simply close the `.py` tabs in your editor to clear the errors.
+To achieve strict compliance with **Security** and **Operational Excellence** standards, I engineered comprehensive cross-origin controls and production-grade monitoring systems.
+
+### 1. Two-Layered CORS Architecture (Security)
+To ensure secure browser-to-backend communications, I implemented a robust, two-layered CORS setup:
+*   **Layer 1 (API Gateway Preflight):** API Gateway is globally configured in `template.yaml` to intercept and respond to browser preflight (`OPTIONS`) requests automatically. It responds to CORS checks with proper permitted methods (`GET, POST, PUT, DELETE, OPTIONS`) and standard AWS header configurations.
+*   **Layer 2 (Lambda Response Integration):** To prevent duplicate headers in code, my shared Node.js Lambda Layer's `createResponse` utility automatically stamps standard access control headers (`Access-Control-Allow-Origin: *`) on every custom application payload.
+
+### 2. Full Observability Stack (Operational Excellence & Performance Efficiency)
+Rather than flying blind, this system actively monitors runtime operations and performance metrics automatically:
+*   **AWS X-Ray (Distributed Tracing):** Enabled via `Tracing: Active` in the SAM template. It traces transactions end-to-end (Client ➔ API Gateway ➔ Lambda ➔ DynamoDB), providing a complete visual latency service map and isolating cold starts or function bottlenecks.
+*   **Amazon CloudWatch (Metrics & Logs):** API Gateway and AWS Lambda automatically stream standard telemetry data (invocations, duration milliseconds, HTTP error counts) to CloudWatch dashboards. All execution stack trace errors are automatically outputted to `/aws/lambda/coffeeshop-inventory-*` log groups for instant debugging.
 
 ---
 
-## 🧹 Step 3: Clean Up (Tear Down)
+## System Prerequisites
 
-Because this project was built using Infrastructure as Code (SAM/CloudFormation), cleaning up your AWS account is incredibly easy. You won't leave any dangling resources behind.
+To ensure a smooth, error-free setup, make sure you have these prerequisites installed. I have listed the direct terminal installation commands (using Windows Package Manager `winget`) and verification commands for each:
 
-When you are completely finished testing the application and want to remove the database, API, and Lambda functions from your AWS account, simply run:
+### 1. Node.js (v18 or higher)
+Required for running the React frontend and packages locally.
+*   **Install Command:**
+    ```cmd
+    winget install OpenJS.NodeJS
+    ```
+*   **Verification Commands:**
+    ```cmd
+    node -v
+    npm -v
+    ```
 
+### 2. AWS Command Line Interface (AWS CLI)
+Used to authenticate your machine with your AWS account.
+*   **Install Command:**
+    ```cmd
+    winget install Amazon.AWSCLI
+    ```
+*   **Authentication & Configuration:**
+    ```cmd
+    aws configure
+    ```
+*   **Verification Command (Checks active AWS session):**
+    ```cmd
+    aws sts get-caller-identity
+    ```
+
+### 3. AWS Serverless Application Model (SAM CLI)
+The command-line tool used to package, build, and deploy serverless infrastructure stacks.
+*   **Install Command:**
+    *   *Option A (Terminal):*
+        ```cmd
+        winget install -e --id Amazon.SAM-CLI
+        ```
+    *   *Option B (Manual MSI):* Download and run the [AWS SAM CLI 64-bit MSI Installer](https://github.com/aws/aws-sam-cli/releases/latest/download/AWS_SAM_CLI_64_PY3.msi).
+*   **Verification Command:**
+    ```cmd
+    sam --version
+    ```
+> [!IMPORTANT]
+> **Windows Environment Variable Refresh:** Refreshing command environments requires completely closing and restarting your terminal or VS Code to register the new command paths on your system.
+
+---
+
+## Step-by-Step Deployment Guide
+
+Follow these highly explicit, step-by-step instructions to get the entire stack live in your AWS account.
+
+### Phase 1: Deploying the Serverless Backend (IaC)
+
+My backend infrastructure is completely managed as code using AWS SAM. 
+
+1.  Open your terminal or Command Prompt and navigate to the backend directory:
+    ```bash
+    cd backend
+    ```
+2.  Build your serverless applications (this packages your Lambda Layer and compiles your functions):
+    ```bash
+    sam build
+    ```
+3.  Deploy the resources to your AWS account. I use the `--guided` flag for the initial setup to store configuration settings:
+    ```bash
+    sam deploy --guided
+    ```
+4.  Answer the guided prompts exactly as follows:
+    *   **Stack Name [sam-app]:** Type `coffeeshop-inventory` and press **Enter**.
+    *   **AWS Region [us-east-1]:** Press **Enter** to accept your default region, or type your preferred region (e.g. `us-west-2`).
+    *   **Confirm changes before deploy [y/N]:** Press **Enter** (default is N).
+    *   **Allow SAM CLI IAM role creation [Y/n]:** Type **`y`** and press **Enter** (necessary to auto-create Lambda execution roles).
+    *   **Disable rollback [y/N]:** Press **Enter** (default is N).
+    *   **GetInventoryFunction has no authentication. Is this okay? [y/N]:** Type **`y`** and press **Enter**. *(SAM will ask this 4 times—once for each CRUD function. Always answer `y` to allow public API access).*
+    *   **Save arguments to configuration file [Y/n]:** Press **Enter** (default is Y, which creates your local `samconfig.toml`).
+    *   **SAM configuration file [samconfig.toml]:** Press **Enter**.
+    *   **SAM configuration environment [default]:** Press **Enter**.
+5.  Wait for CloudFormation to create the resources. When complete, the terminal will show a green **`Outputs`** block.
+6.  Locate the line starting with **`InventoryApiUrl`** (e.g., `https://xyz123.execute-api.us-east-1.amazonaws.com/Prod/inventory`). **Copy this URL carefully!**
+
+---
+
+### Phase 2: Running and Hooking Up the React Frontend
+
+Now, connect the frontend user interface to your live API.
+
+1.  Open a new terminal window (Windows users: use standard **Command Prompt (cmd.exe)** to bypass PowerShell script execution restrictions) and navigate to the frontend:
+    ```cmd
+    cd frontend
+    ```
+2.  Install the required node packages:
+    ```cmd
+    npm install
+    ```
+3.  Connect the app to your live API Gateway:
+    *   Open `frontend/src/App.jsx` in your code editor.
+    *   Find the `API_URL` declaration near the top (Line 6).
+    *   Paste your copied URL as the value, wrapping it in quotes:
+        ```javascript
+        const API_URL = import.meta.env.VITE_API_URL || "https://your-api-gateway-id.execute-api.us-east-1.amazonaws.com/Prod/inventory";
+        ```
+4.  Launch the hot-reloading local development server:
+    ```cmd
+    npm run dev
+    ```
+5.  Open your browser and navigate to **`http://localhost:5173/`**. You can now add, edit, and delete items, seeing them update your live AWS DynamoDB database in real-time!
+
+---
+
+### Phase 3: Setting Up Production Hosting (AWS Amplify)
+
+Host your frontend on a fast global CDN with automated Git-connected CI/CD.
+
+1.  Commit and push all your working code changes to your personal GitHub repository:
+    ```bash
+    git add .
+    git commit -m "feat: complete full CRUD integration with live AWS backend"
+    git push origin main
+    ```
+2.  Open your web browser and go to the **AWS Amplify Console**.
+3.  Click **Create new app** (or **Host web app**).
+4.  Choose **GitHub** as the source, authorize AWS Amplify, and select your repository: `aws-wellarchitected-framework-performance-efficiency`.
+5.  Choose your branch (`main`) and click **Next**.
+6.  On the **Configure build settings** page, configure the monorepo settings exactly:
+    *   Check the box that says **"Connecting a monorepo? Check this box."**
+    *   In the **Monorepo folder path** text box, enter: **`frontend`**
+    *   *Note: Using just `frontend` is critical because it sits directly at the root of your remote repository.*
+7.  Click **Next**, review the settings, and click **Save and Deploy**.
+8.  Amplify will now automatically build and host your site. Once complete, you will receive a secure, live, public URL (`.amplifyapp.com`) to access your application globally!
+
+---
+
+### Phase 4: Cleaning Up Resources (Teardown)
+
+Because this application leverages serverless pay-per-request pricing, it costs nothing when not being accessed. However, if you want to completely remove all resources from your AWS account to keep it pristine, follow these teardown steps:
+
+#### Step 1: Delete the Backend Stack
+Navigate to your backend folder and run the delete command:
 ```bash
 cd backend
 sam delete
 ```
-SAM will ask you to confirm that you want to delete the `coffeeshop-inventory` stack. Press **`y`** and it will safely tear down everything it created!
+Type **`y`** to confirm. CloudFormation will automatically and safely destroy your API Gateway, Lambdas, IAM execution roles, and the DynamoDB Table within seconds.
+
+#### Step 2: Delete the AWS Amplify App
+1.  Open the **AWS Amplify Console** in your browser.
+2.  Click on your **app name** to open its dashboard.
+3.  In the left-hand sidebar menu, scroll to the bottom and click **App settings**.
+4.  In the top-right corner of the page, click the **Actions** dropdown menu and select **Delete app**.
+5.  Type the confirmation prompt as requested and click **Delete**. All global hosting assets will be wiped out immediately.
+
+---
+
+## Troubleshooting Quick Reference
+
+*   **PowerShell Execution policy errors (UnauthorizedAccess):** Run commands inside **Command Prompt (cmd.exe)** or run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` in PowerShell to temporarily bypass script blocks.
+*   **Amplify deployment fails with a 404 REST Error:** Ensure your monorepo folder path is configured exactly as **`frontend`** (not `performance efficiency/frontend`), as the parent folder is the root of your repository on GitHub.
+*   **Delete stack fails due to non-empty S3 bucket (aws-sam-cli-managed-default):** S3 blocks bucket deletions if they contain older deployment zips. Open the **S3 Console**, search for your SAM CLI source bucket, click **Empty**, type `permanently delete` to confirm, and then run `sam delete --stack-name aws-sam-cli-managed-default` to clean up your bootstrap stack.
