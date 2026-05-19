@@ -35,3 +35,24 @@ This is a **ghost error**. We originally wrote the backend in Python (`app.py`),
 **Resolution**:
 AWS SAM needs the native language installed locally to build the packages, or it requires Docker to build them in a container.
 - If you lack Python and Docker, the easiest resolution (which we implemented) is to change the `Runtime` in `template.yaml` to match a language you *do* have natively installed (like `nodejs20.x`) and rewrite the functions in that language.
+
+## 5. Access blocked by CORS Policy (Preflight/OPTIONS failing)
+**Symptom**: When trying to Save, Update, or Delete items, the UI does nothing and the browser console shows an error:
+`Access to fetch at '...' from origin 'http://localhost:5173' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present...`
+
+**Resolution**:
+Before a browser makes a `POST`, `PUT`, or `DELETE` request across different domains, it sends an `OPTIONS` "preflight" request. If the API Gateway doesn't respond to `OPTIONS` with CORS headers, the browser blocks the actual request.
+- **Fix**: We configured a global `Api.Cors` block inside `template.yaml` under `Globals` to handle all OPTIONS requests automatically at the API Gateway level:
+  ```yaml
+  Globals:
+    Api:
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+  ```
+  After saving the template, rebuild and redeploy the backend stack:
+  ```cmd
+  sam build
+  sam deploy
+  ```

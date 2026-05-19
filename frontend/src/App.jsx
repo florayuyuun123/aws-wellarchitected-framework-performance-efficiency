@@ -3,7 +3,7 @@ import { Coffee, Plus, Trash2, RefreshCw, Package, Edit2 } from 'lucide-react'
 import './index.css'
 
 // We will replace this with the real API Gateway URL once deployed
-const API_URL = import.meta.env.VITE_API_URL || null;
+const API_URL = import.meta.env.VITE_API_URL || "https://714yimwoye.execute-api.us-east-1.amazonaws.com/Prod/inventory";
 
 function App() {
   const [inventory, setInventory] = useState([]);
@@ -94,8 +94,8 @@ function App() {
     <div className="app-container">
       <header className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1><Coffee size={32} style={{ display: 'inline', marginRight: '10px', color: '#d88c51' }}/> Serverless Cafe</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Performance Efficiency Inventory Manager</p>
+          <h1><Coffee size={32} style={{ display: 'inline', marginRight: '10px', color: '#d88c51' }}/> Welcome To Flotech's Cafe</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>This is a Serverless CoffeeShop Inventory Manager</p>
         </div>
         <button onClick={fetchInventory}>
           {loading ? <div className="loader" /> : <><RefreshCw size={18} /> Refresh</>}
