@@ -10,6 +10,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({ name: '', category: 'beans', quantity: '', unit: 'kg' });
   const [isAdding, setIsAdding] = useState(false);
+  const [editingItemId, setEditingItemId] = useState(null);
 
   // Mock data for development when API is not yet available
   const mockData = [
@@ -44,35 +45,64 @@ function App() {
     fetchInventory();
   }, []);
 
-  const handleAdd = async (e) => {
+  const handleStartEdit = (item) => {
+    setFormData({
+      name: item.name,
+      category: item.category,
+      quantity: item.quantity.toString(),
+      unit: item.unit
+    });
+    setEditingItemId(item.itemId);
+    setIsAdding(true);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.quantity) return;
     
-    const newItem = {
-      ...formData,
-      quantity: parseInt(formData.quantity)
+    const itemData = {
+      name: formData.name,
+      category: formData.category,
+      quantity: parseInt(formData.quantity),
+      unit: formData.unit
     };
 
     if (!API_URL) {
-      setInventory([...inventory, { ...newItem, itemId: Date.now().toString() }]);
+      if (editingItemId) {
+        setInventory(inventory.map(item => item.itemId === editingItemId ? { ...item, ...itemData } : item));
+      } else {
+        setInventory([...inventory, { ...itemData, itemId: Date.now().toString() }]);
+      }
       setIsAdding(false);
+      setEditingItemId(null);
       setFormData({ name: '', category: 'beans', quantity: '', unit: 'kg' });
       return;
     }
 
     try {
-      const res = await fetch(`${API_URL}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newItem)
-      });
+      let res;
+      if (editingItemId) {
+        res = await fetch(`${API_URL}/${editingItemId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(itemData)
+        });
+      } else {
+        res = await fetch(`${API_URL}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(itemData)
+        });
+      }
+      
       if (res.ok) {
         fetchInventory();
         setIsAdding(false);
+        setEditingItemId(null);
         setFormData({ name: '', category: 'beans', quantity: '', unit: 'kg' });
       }
     } catch (err) {
-      console.error("Failed to add item", err);
+      console.error("Failed to save item", err);
     }
   };
 
@@ -104,8 +134,8 @@ function App() {
 
       {isAdding ? (
         <div className="glass-panel" style={{ animation: 'fadeIn 0.3s' }}>
-          <h2><Plus size={24} /> Add New Inventory</h2>
-          <form onSubmit={handleAdd} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <h2>{editingItemId ? <><Edit2 size={24} /> Edit Inventory Item</> : <><Plus size={24} /> Add New Inventory</>}</h2>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
               <label>Item Name</label>
               <input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. Colombian Beans" required />
@@ -133,7 +163,11 @@ function App() {
             </div>
             <div className="form-group" style={{ flexDirection: 'row', gap: '10px' }}>
               <button type="submit">Save Item</button>
-              <button type="button" className="danger" onClick={() => setIsAdding(false)}>Cancel</button>
+              <button type="button" className="danger" onClick={() => {
+                setIsAdding(false);
+                setEditingItemId(null);
+                setFormData({ name: '', category: 'beans', quantity: '', unit: 'kg' });
+              }}>Cancel</button>
             </div>
           </form>
         </div>
@@ -166,7 +200,12 @@ function App() {
                 )}
               </div>
               <div className="item-actions">
-                <button style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}><Edit2 size={16}/></button>
+                <button 
+                  style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}
+                  onClick={() => handleStartEdit(item)}
+                >
+                  <Edit2 size={16}/>
+                </button>
                 <button className="danger" onClick={() => handleDelete(item.itemId)}><Trash2 size={16}/></button>
               </div>
             </div>

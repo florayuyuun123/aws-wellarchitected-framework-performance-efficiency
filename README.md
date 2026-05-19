@@ -88,7 +88,7 @@ The frontend is a beautiful, responsive React application.
     * Choose your main branch and click **Next**.
     * On the **Configure build settings** page:
       * Check the box that says **"Connecting a monorepo? Check this box."**
-      * In the **Monorepo folder path** text box, enter: `performance efficiency/frontend`.
+      * In the **Monorepo folder path** text box, enter: `frontend`.
       * AWS Amplify will now automatically detect your React project and configure the optimal build settings without you needing to edit any YAML code!
     * Click **Next**, then click **Save and Deploy**. Once the build finishes, you will receive your live, public `.amplifyapp.com` domain!
 
