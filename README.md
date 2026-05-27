@@ -210,8 +210,6 @@ Type **`y`** to confirm. CloudFormation will automatically and safely destroy yo
 
 ---
 
-## Troubleshooting Quick Reference
+## Troubleshooting
 
-*   **PowerShell Execution policy errors (UnauthorizedAccess):** Run commands inside **Command Prompt (cmd.exe)** or run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` in PowerShell to temporarily bypass script blocks.
-*   **Amplify deployment fails with a 404 REST Error:** Ensure your monorepo folder path is configured exactly as **`frontend`** (not `performance efficiency/frontend`), as the parent folder is the root of your repository on GitHub.
-*   **Delete stack fails due to non-empty S3 bucket (aws-sam-cli-managed-default):** S3 blocks bucket deletions if they contain older deployment zips. Open the **S3 Console**, search for your SAM CLI source bucket, click **Empty**, type `permanently delete` to confirm, and then run `sam delete --stack-name aws-sam-cli-managed-default` to clean up your bootstrap stack.
+For any deployment issues, execution blockages, or cleanup locks, please refer to the dedicated and comprehensive [Troubleshooting Guide](TROUBLESHOOTING.md).

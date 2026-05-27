@@ -1,0 +1,14 @@
+# Node.js dependencies
+node_modules/
+
+# Build outputs
+frontend/dist/
+frontend/.vite/
+
+# AWS SAM build artifacts
+backend/.aws-sam/
+
+# Environment and secrets
+.env
+.env.local
+samconfig.toml
